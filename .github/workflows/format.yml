@@ -1,0 +1,32 @@
+name: Code Formatting
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Run Code Formatting
+        run: make format_all
+
+      - name: Check for Uncommitted Changes
+        run: |
+          git diff --exit-code || (echo "⚠️ Code format issues found. Please run 'make format_all' locally and commit changes." && exit 1)
