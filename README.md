@@ -15,3 +15,14 @@ pip install .
 > ```bash
 > pip install -e ".[dev]"
 > ```
+
+## Usage
+
+1. Run the script for the video mode
+    > This script will run the drowsiness detection on the video file
+    respectively to the configuration file. 
+```bash
+python ./scripts/run_drowsiness_detection.py --mode video\
+                                             --config ./path/to/config.yaml\
+                                             --log_folder ./path/for/log_folder
+```
