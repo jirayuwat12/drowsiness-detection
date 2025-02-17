@@ -26,3 +26,11 @@ python ./scripts/run_drowsiness_detection.py --mode video\
                                              --config ./path/to/config.yaml\
                                              --log_folder ./path/for/log_folder
 ```
+
+## Dataset
+
+In this project, we have used 2 datasets:
+
+1. [Drowsiness Detection Dataset, *Prasad V Patil*](https://www.kaggle.com/datasets/prasadvpatil/mrl-dataset/data)
+2. [Driver Drowsiness Detection (DDD), *Ismail Nasri*](https://www.kaggle.com/datasets/ismailnasri20/driver-drowsiness-dataset-ddd)
+   
