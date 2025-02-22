@@ -1,0 +1,7 @@
+input_vdo_folder: "./data/input"
+output_data_folder: "./data/output"
+delete_output_if_exists: true
+
+skip_frames: 10
+
+face_detector_model_path: "./models/face_landmarker.task"
