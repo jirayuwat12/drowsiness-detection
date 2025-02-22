@@ -16,10 +16,11 @@ dependencies = [
     "opencv-python",
     "numpy",
     "PyYAML",
+    "tqdm",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "black", "flake8", "isort"]
+dev = ["pytest", "pytest-cov", "black", "flake8", "isort", "mediapipe"]
 
 [tool.setuptools]
 packages = ["drowsiness_detection"]
