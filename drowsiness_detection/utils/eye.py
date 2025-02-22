@@ -14,6 +14,9 @@ def compute_eye_aspect_ratio(eye_position: list[Position]) -> float:
 
     Ref: https://medium.com/analytics-vidhya/eye-aspect-ratio-ear-and-drowsiness-detector-using-dlib-a0b2c292d706
     """
+    if not isinstance(eye_position, list):
+        raise ValueError("The eye landmark must be an instance of list[Position]")
+
     antecendents = abs(eye_position[1] - eye_position[5]) + abs(eye_position[2] - eye_position[4])
     consequents = 2 * abs(eye_position[0] - eye_position[3])
     ear = antecendents / consequents
