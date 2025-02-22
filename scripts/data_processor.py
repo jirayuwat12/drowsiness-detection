@@ -1,21 +1,28 @@
 import argparse
 import os
+import pickle
+import shutil
 
-import mediapipe as mp
 import cv2
-from tqdm import tqdm
+import mediapipe as mp
 import numpy as np
 import yaml
-import shutil
-from drowsiness_detection.dataclasses.drowsiness_image import DrowsinessImage
-from drowsiness_detection.dataclasses.position import Position
 from mediapipe.tasks import python
-import pickle
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import RunningMode
+from tqdm import tqdm
+
+from drowsiness_detection.dataclasses.drowsiness_image import DrowsinessImage
+from drowsiness_detection.dataclasses.position import Position
 
 
-def main(face_detector_model_path: str, input_vdo_folder: str, skip_frames: int, output_data_folder: str, delete_output_if_exists: bool) -> None:
+def main(
+    face_detector_model_path: str,
+    input_vdo_folder: str,
+    skip_frames: int,
+    output_data_folder: str,
+    delete_output_if_exists: bool,
+) -> None:
     # Delete the output folder and its content if it exists
     if delete_output_if_exists and os.path.exists(output_data_folder):
         shutil.rmtree(output_data_folder)
@@ -29,7 +36,10 @@ def main(face_detector_model_path: str, input_vdo_folder: str, skip_frames: int,
     for vdo_file in vdo_files:
         extract_faces_from_video(face_detector_model_path, vdo_file, skip_frames, output_data_folder)
 
-def extract_faces_from_video(face_detector_model_path: str, vdo_path: str, skip_frames: int, output_data_folder: str) -> None:
+
+def extract_faces_from_video(
+    face_detector_model_path: str, vdo_path: str, skip_frames: int, output_data_folder: str
+) -> None:
     # Create an FaceDetector object.
     base_options = python.BaseOptions(model_asset_path=face_detector_model_path)
     options = vision.FaceLandmarkerOptions(base_options=base_options, running_mode=RunningMode.VIDEO)
@@ -37,7 +47,11 @@ def extract_faces_from_video(face_detector_model_path: str, vdo_path: str, skip_
         vdo = cv2.VideoCapture(vdo_path)
         fps = vdo.get(cv2.CAP_PROP_FPS)
 
-        for frame_index in tqdm(range(int(vdo.get(cv2.CAP_PROP_FRAME_COUNT))), unit="frame", desc=f"Processing the '{os.path.basename(vdo_path)}'"):
+        for frame_index in tqdm(
+            range(int(vdo.get(cv2.CAP_PROP_FRAME_COUNT))),
+            unit="frame",
+            desc=f"Processing the '{os.path.basename(vdo_path)}'",
+        ):
             ret, frame = vdo.read()
 
             if frame_index % skip_frames != 0:
@@ -48,7 +62,7 @@ def extract_faces_from_video(face_detector_model_path: str, vdo_path: str, skip_
                 image_format=mp.ImageFormat.SRGB,
                 data=np.array(frame),
             )
-            timestamp = frame_index/fps
+            timestamp = frame_index / fps
 
             # Detect face from image
             face_detector_result = detector.detect_for_video(mp_image, mp.Timestamp.from_seconds(timestamp).value)
@@ -62,17 +76,43 @@ def extract_faces_from_video(face_detector_model_path: str, vdo_path: str, skip_
             for landmark in face_landmark:
                 x, y = int(landmark.x * w), int(landmark.y * h)
                 min_x, min_y, max_x, max_y = min(min_x, x), min(min_y, y), max(max_x, x), max(max_y, y)
-            data.face_bbox = (min_x, min_y, max_x-min_x, max_y-min_y)
+            data.face_bbox = (min_x, min_y, max_x - min_x, max_y - min_y)
             data.face.image = frame[min_y:max_y, min_x:max_x]
 
             # Extract the left and right eye images
-            data.face.left_eye_bbox = (face_landmark[362].x * w, face_landmark[475].y * h, (face_landmark[263].x - face_landmark[362].x) * w, (face_landmark[477].y - face_landmark[475].y) * h)
-            data.face.eye.left_eye_image = frame[int(data.face.left_eye_bbox[1]):int(data.face.left_eye_bbox[1]+data.face.left_eye_bbox[3]), int(data.face.left_eye_bbox[0]):int(data.face.left_eye_bbox[0]+data.face.left_eye_bbox[2])]
-            data.face.right_eye_bbox = (face_landmark[33].x * w, face_landmark[470].y * h, (face_landmark[133].x - face_landmark[33].x) * w, (face_landmark[472].y - face_landmark[470].y) * h)
-            data.face.eye.right_eye_image = frame[int(data.face.right_eye_bbox[1]):int(data.face.right_eye_bbox[1]+data.face.right_eye_bbox[3]), int(data.face.right_eye_bbox[0]):int(data.face.right_eye_bbox[0]+data.face.right_eye_bbox[2])]
+            data.face.left_eye_bbox = (
+                face_landmark[362].x * w,
+                face_landmark[475].y * h,
+                (face_landmark[263].x - face_landmark[362].x) * w,
+                (face_landmark[477].y - face_landmark[475].y) * h,
+            )
+            data.face.eye.left_eye_image = frame[
+                int(data.face.left_eye_bbox[1]) : int(data.face.left_eye_bbox[1] + data.face.left_eye_bbox[3]),
+                int(data.face.left_eye_bbox[0]) : int(data.face.left_eye_bbox[0] + data.face.left_eye_bbox[2]),
+            ]
+            data.face.right_eye_bbox = (
+                face_landmark[33].x * w,
+                face_landmark[470].y * h,
+                (face_landmark[133].x - face_landmark[33].x) * w,
+                (face_landmark[472].y - face_landmark[470].y) * h,
+            )
+            data.face.eye.right_eye_image = frame[
+                int(data.face.right_eye_bbox[1]) : int(data.face.right_eye_bbox[1] + data.face.right_eye_bbox[3]),
+                int(data.face.right_eye_bbox[0]) : int(data.face.right_eye_bbox[0] + data.face.right_eye_bbox[2]),
+            ]
             # Offset the eye bbox to the face bbox
-            data.face.left_eye_bbox = (data.face.left_eye_bbox[0] - data.face_bbox[0], data.face.left_eye_bbox[1] - data.face_bbox[1], data.face.left_eye_bbox[2], data.face.left_eye_bbox[3])
-            data.face.right_eye_bbox = (data.face.right_eye_bbox[0] - data.face_bbox[0], data.face.right_eye_bbox[1] - data.face_bbox[1], data.face.right_eye_bbox[2], data.face.right_eye_bbox[3])
+            data.face.left_eye_bbox = (
+                data.face.left_eye_bbox[0] - data.face_bbox[0],
+                data.face.left_eye_bbox[1] - data.face_bbox[1],
+                data.face.left_eye_bbox[2],
+                data.face.left_eye_bbox[3],
+            )
+            data.face.right_eye_bbox = (
+                data.face.right_eye_bbox[0] - data.face_bbox[0],
+                data.face.right_eye_bbox[1] - data.face_bbox[1],
+                data.face.right_eye_bbox[2],
+                data.face.right_eye_bbox[3],
+            )
 
             # Set eye position
             data.face.eye.left_eye_positions = [
@@ -100,11 +140,14 @@ def extract_faces_from_video(face_detector_model_path: str, vdo_path: str, skip_
                 eye_position.y = eye_position.y * h - data.face_bbox[1]
 
             # Save the DrowsinessImage object
-            output_file = os.path.join(output_data_folder, f"{os.path.basename(vdo_path).split('.')[0]}_{frame_index}.pkl")
+            output_file = os.path.join(
+                output_data_folder, f"{os.path.basename(vdo_path).split('.')[0]}_{frame_index}.pkl"
+            )
             with open(output_file, "wb") as file:
                 pickle.dump(data, file)
 
         vdo.release()
+
 
 if __name__ == "__main__":
     # Create the parser
@@ -120,4 +163,10 @@ if __name__ == "__main__":
     with open(args.config, "r") as file:
         config = yaml.safe_load(file)
 
-    main(face_detector_model_path=config["face_detector_model_path"], input_vdo_folder=config["input_vdo_folder"], skip_frames=config['skip_frames'], delete_output_if_exists=config['delete_output_if_exists'], output_data_folder=config['output_data_folder'])
+    main(
+        face_detector_model_path=config["face_detector_model_path"],
+        input_vdo_folder=config["input_vdo_folder"],
+        skip_frames=config["skip_frames"],
+        delete_output_if_exists=config["delete_output_if_exists"],
+        output_data_folder=config["output_data_folder"],
+    )
