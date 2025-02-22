@@ -1,3 +1,7 @@
+import warnings
+
+import numpy as np
+
 from drowsiness_detection.dataclasses.drowsiness_image import DrowsinessImage
 from drowsiness_detection.eye_detection import BaseEyeDetector
 from drowsiness_detection.face_detection import BaseFaceDetector
@@ -27,13 +31,16 @@ class DrowsinessDetector:
         self.eye_detector = eye_detector
 
     def detect(
-        self, drowsiness_image: DrowsinessImage, return_drowsiness_image: bool = False, ear_threshold: float = 0.5
+        self,
+        drowsiness_image: DrowsinessImage | np.ndarray,
+        return_drowsiness_image: bool = False,
+        ear_threshold: float = 0.5,
     ) -> DrowsinessImage | bool:
         """
         Detects the drowsiness in the image
 
         :param drowsiness_image: The image to detect the drowsiness.
-        :type drowsiness_image: DrowsinessImage
+        :type drowsiness_image: DrowsinessImage | np.ndarray
         :param return_drowsiness_image: Whether to return the drowsiness image.
         :type return_drowsiness_image: bool
         :param ear_threshold: The EAR threshold to consider the eye closed.
@@ -41,12 +48,32 @@ class DrowsinessDetector:
         :return: The image with the drowsiness detected.
         :rtype: DrowsinessImage
         """
-        drowsiness_image = self.face_detector.detect(drowsiness_image)
-        drowsiness_image.face = self.eye_detector.detect(drowsiness_image.face)
+        if isinstance(drowsiness_image, np.ndarray):
+            drowsiness_image = DrowsinessImage(image=drowsiness_image)
 
+        # Detect the face in the image
+        try:
+            drowsiness_image = self.face_detector.detect(drowsiness_image)
+        except ValueError as e:
+            warnings.warn(str(e))
+            if return_drowsiness_image:
+                return drowsiness_image
+            return False
+
+        # Detect the eyes in the face
+        try:
+            drowsiness_image.face = self.eye_detector.detect(drowsiness_image.face)
+        except ValueError as e:
+            warnings.warn(str(e))
+            if return_drowsiness_image:
+                return drowsiness_image
+            return False
+
+        # Compute the EAR for the left and right eye
         left_ear = compute_eye_aspect_ratio(drowsiness_image.face.eye.left_eye_positions)
         right_ear = compute_eye_aspect_ratio(drowsiness_image.face.eye.right_eye_positions)
 
+        # Check if the eyes are closed
         if left_ear < ear_threshold and right_ear < ear_threshold:
             drowsiness_image.drowsiness_detected = True
 
