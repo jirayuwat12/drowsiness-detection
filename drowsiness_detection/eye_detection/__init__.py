@@ -1,3 +1,4 @@
-from .eye_detector import EyeDetector
+from .base_eye_detector import BaseEyeDetector
+from .mediapipe_eye_detector import MediapipeEyeDetector
 
-__all__ = ["EyeDetector"]
+__all__ = ["BaseEyeDetector", "MediapipeEyeDetector"]

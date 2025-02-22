@@ -50,21 +50,21 @@ def closed_eye_landmarks() -> Eye:
 
 
 def test_compute_eye_aspect_ratio(opened_eye_landmarks: Eye, closed_eye_landmarks: Eye) -> None:
-    opened_ear = compute_eye_aspect_ratio(opened_eye_landmarks)
-    closed_ear = compute_eye_aspect_ratio(closed_eye_landmarks)
+    opened_ear = compute_eye_aspect_ratio(opened_eye_landmarks.left_eye_positions)
+    closed_ear = compute_eye_aspect_ratio(closed_eye_landmarks.left_eye_positions)
     assert opened_ear > closed_ear
     assert opened_ear > 0.2
     assert closed_ear < 0.2
 
 
 def test_invalid_eye_landmarks() -> None:
-    with pytest.raises(ValueError, match="The eye landmark must be an instance of Eye."):
-        compute_eye_aspect_ratio([Position(x=0, y=0)])
+    with pytest.raises(ValueError, match="The eye landmark must be an instance of list\[Position\]"):
+        compute_eye_aspect_ratio(Eye())
 
-    with pytest.raises(ValueError, match="The eye landmark must be an instance of Eye."):
+    with pytest.raises(ValueError, match="The eye landmark must be an instance of list\[Position\]"):
         compute_eye_aspect_ratio("invalid input")
 
 
 def test_correct_eye_landmarks(opened_eye_landmarks: Eye) -> None:
     # Pass the eye landmarks class directly
-    _ = compute_eye_aspect_ratio(opened_eye_landmarks)
+    _ = compute_eye_aspect_ratio(opened_eye_landmarks.right_eye_positions)
