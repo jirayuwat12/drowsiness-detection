@@ -1,11 +1,13 @@
+from abc import ABC, abstractmethod
+
 from drowsiness_detection.dataclasses.face import Face
 
 
-class EyeDetector:
+class BaseEyeDetector(ABC):
     def __init__(self) -> None:
         pass
 
-    # TODO: Implement the detect_face method
+    @abstractmethod
     def detect(self, face: Face) -> Face:
         """
         Detects the eyes in the face

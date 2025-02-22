@@ -1,11 +1,13 @@
 from drowsiness_detection.dataclasses.drowsiness_image import DrowsinessImage
-from drowsiness_detection.eye_detection import EyeDetector
-from drowsiness_detection.face_detection import FaceDetector
+from drowsiness_detection.eye_detection import BaseEyeDetector
+from drowsiness_detection.face_detection import BaseFaceDetector
 from drowsiness_detection.utils.eye import compute_eye_aspect_ratio
 
 
 class DrowsinessDetector:
-    def __init__(self, face_detector: FaceDetector | None = None, eye_detector: EyeDetector | None = None) -> None:
+    def __init__(
+        self, face_detector: BaseFaceDetector | None = None, eye_detector: BaseEyeDetector | None = None
+    ) -> None:
         """
         Initializes the DrowsinessDetector
 
@@ -13,9 +15,16 @@ class DrowsinessDetector:
         :type face_detector: FaceDetector
         :param eye_detector: The eye detector to use.
         :type eye_detector: EyeDetector
+
+        :raises ValueError: If face_detector is not an instance of BaseFaceDetector.
+        :raises ValueError: If eye_detector is not an instance of BaseEyeDetector.
         """
-        self.face_detector = face_detector or FaceDetector()
-        self.eye_detector = eye_detector or EyeDetector()
+        if not isinstance(face_detector, BaseFaceDetector):
+            raise ValueError(f"face_detector should be an instance of BaseFaceDetector, not {type(face_detector)}")
+        if not isinstance(eye_detector, BaseEyeDetector):
+            raise ValueError(f"eye_detector should be an instance of BaseEyeDetector, not {type(eye_detector)}")
+        self.face_detector = face_detector
+        self.eye_detector = eye_detector
 
     def detect(
         self, drowsiness_image: DrowsinessImage, return_drowsiness_image: bool = False, ear_threshold: float = 0.5

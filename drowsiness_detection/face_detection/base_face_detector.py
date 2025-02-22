@@ -1,11 +1,13 @@
+from abc import ABC, abstractmethod
+
 from drowsiness_detection.dataclasses.drowsiness_image import DrowsinessImage
 
 
-class FaceDetector:
+class BaseFaceDetector(ABC):
     def __init__(self) -> None:
         pass
 
-    # TODO: Implement the detect method
+    @abstractmethod
     def detect(self, drowsiness_image: DrowsinessImage) -> DrowsinessImage:
         """
         Detects the face in the image
