@@ -16,3 +16,6 @@ install_development:
 
 test:
 	pytest
+
+run_demo:
+	streamlit run ./scripts/drowsiness_detection_demo.py
