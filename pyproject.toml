@@ -17,6 +17,10 @@ dependencies = [
     "numpy",
     "PyYAML",
     "tqdm",
+    "streamlit",
+    "mediapipe",
+    "watchdog",
+    "ipykernel>=6.29.5",
 ]
 
 [project.optional-dependencies]
