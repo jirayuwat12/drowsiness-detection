@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "black", "flake8", "isort", "mediapipe"]
+dev = ["pytest", "pytest-cov", "black", "flake8", "isort"]
 
 [tool.setuptools]
 packages = ["drowsiness_detection"]
